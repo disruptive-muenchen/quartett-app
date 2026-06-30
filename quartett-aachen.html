@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Das große Experten-Quartett</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,600&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-dark: #0c1f17;
+    --card-green: #103923;
+    --card-green-2: #0d2f1d;
+    --gold: #c9a44c;
+    --gold-light: #e9d28a;
+    --cream: #f3ead9;
+    --shadow: rgba(0,0,0,0.5);
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 20%, #163a26 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, #0e2718 0%, transparent 50%),
+      var(--bg-dark);
+    font-family: 'Libre Baskerville', serif;
+    color: var(--cream);
+    padding: 24px;
+  }
+  h1.title{
+    font-family:'Playfair Display', serif;
+    text-align:center;
+    font-weight:900;
+    font-size: clamp(28px, 4vw, 46px);
+    color: var(--gold-light);
+    text-shadow: 0 2px 4px var(--shadow);
+    letter-spacing: 1px;
+    margin: 4px 0 4px;
+  }
+  .subtitle{
+    text-align:center;
+    color: var(--gold);
+    font-style: italic;
+    margin-bottom: 22px;
+    font-size: 15px;
+  }
+  .topbar{
+    display:flex;
+    justify-content:center;
+    gap: 14px;
+    margin-bottom: 28px;
+    flex-wrap:wrap;
+  }
+  .topbar button{
+    font-family:'Playfair Display', serif;
+    background: linear-gradient(180deg, #1a4a2d, #0d2c1b);
+    border: 2px solid var(--gold);
+    color: var(--gold-light);
+    padding: 10px 22px;
+    border-radius: 6px;
+    cursor:pointer;
+    font-size: 15px;
+    font-weight:700;
+    letter-spacing: 0.5px;
+    transition: all .15s ease;
+  }
+  .topbar button:hover{ background: linear-gradient(180deg, #225c38, #123822); transform: translateY(-1px);}
+  .topbar button.active{ background: var(--gold); color:#102316; border-color: var(--gold-light); }
+
+  .view{ display:none; max-width: 1300px; margin: 0 auto; }
+  .view.active{ display:block; }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 20px;
+  }
+
+  .card{
+    background: linear-gradient(160deg, var(--card-green) 0%, var(--card-green-2) 100%);
+    border: 3px solid var(--gold);
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 6px 16px var(--shadow), inset 0 0 0 1px rgba(201,164,76,0.25);
+    cursor: pointer;
+    position: relative;
+    transition: transform .18s ease, box-shadow .18s ease;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+  .card:hover{ transform: translateY(-6px); box-shadow: 0 12px 24px var(--shadow), inset 0 0 0 1px var(--gold); }
+  .card.selected{ outline: 3px solid var(--gold-light); box-shadow: 0 0 0 4px rgba(233,210,138,0.5), 0 12px 24px var(--shadow); }
+  .card.winner{
+    border-color: var(--gold-light);
+    box-shadow: 0 0 30px 6px var(--gold-light), 0 12px 24px var(--shadow);
+    animation: winnerGlow 1.4s ease-in-out infinite alternate;
+  }
+  @keyframes winnerGlow{
+    from{ box-shadow: 0 0 18px 4px var(--gold-light), 0 12px 24px var(--shadow); }
+    to{ box-shadow: 0 0 38px 10px var(--gold-light), 0 12px 24px var(--shadow); }
+  }
+  .card-corner{
+    position:absolute; top:6px; left:8px;
+    font-family:'Playfair Display',serif;
+    font-weight:900;
+    color: var(--gold);
+    font-size: 13px;
+    border: 1px solid var(--gold);
+    border-radius: 4px;
+    padding: 1px 6px;
+    background: rgba(0,0,0,0.25);
+  }
+  .avatar{
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    border: 3px solid var(--gold);
+    background: radial-gradient(circle at 35% 30%, #2c6b44, #0d2616);
+    display:flex; align-items:center; justify-content:center;
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size: 34px;
+    color: var(--gold-light);
+    margin: 10px 0 10px;
+    box-shadow: 0 3px 8px var(--shadow);
+  }
+  .card .name{
+    font-family:'Playfair Display', serif;
+    font-weight:700;
+    font-size: 16px;
+    text-align:center;
+    color: var(--cream);
+    margin-bottom: 2px;
+    min-height: 38px;
+  }
+  .card .role{
+    font-size: 11.5px;
+    text-align:center;
+    color: var(--gold);
+    font-style: italic;
+    margin-bottom: 10px;
+    min-height: 44px;
+  }
+  .stats{
+    width: 100%;
+    border-top: 1px solid rgba(201,164,76,0.4);
+    padding-top: 8px;
+  }
+  .stat-row{
+    display:flex;
+    justify-content:space-between;
+    font-size: 11.5px;
+    padding: 3px 4px;
+    border-bottom: 1px dotted rgba(201,164,76,0.25);
+  }
+  .stat-row .label{ color: var(--cream); opacity: 0.85; }
+  .stat-row .value{ color: var(--gold-light); font-weight:700; font-family:'Playfair Display',serif; }
+  .stat-row.duel-winner{ background: rgba(201,164,76,0.35); }
+
+  /* Single card detail view */
+  .detail-wrap{ display:flex; justify-content:center; }
+  .detail-card{
+    width: min(360px, 90vw);
+  }
+  .back-link{
+    display:inline-block;
+    margin-bottom: 16px;
+    color: var(--gold-light);
+    cursor:pointer;
+    font-style: italic;
+    text-decoration: underline;
+  }
+
+  /* Duel mode */
+  .duel-instructions{
+    text-align:center;
+    color: var(--gold);
+    margin-bottom: 18px;
+    font-style: italic;
+  }
+  .duel-arena{
+    display:flex;
+    justify-content:center;
+    align-items:flex-start;
+    gap: 40px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+  .duel-vs{
+    font-family:'Playfair Display', serif;
+    font-size: 36px;
+    color: var(--gold);
+    font-weight:900;
+    align-self:center;
+  }
+  .duel-card{ width: 260px; }
+  .category-picker{
+    display:flex;
+    justify-content:center;
+    gap: 10px;
+    flex-wrap:wrap;
+    margin: 22px 0;
+  }
+  .category-picker button{
+    font-family:'Playfair Display', serif;
+    background: transparent;
+    border: 2px solid var(--gold);
+    color: var(--gold-light);
+    padding: 8px 16px;
+    border-radius: 20px;
+    cursor:pointer;
+    font-size: 13px;
+  }
+  .category-picker button:hover, .category-picker button:disabled{
+    background: var(--gold);
+    color: #102316;
+  }
+  .category-picker button:disabled{ cursor:not-allowed; opacity:0.85; }
+
+  .result-banner{
+    text-align:center;
+    font-family:'Playfair Display', serif;
+    font-size: 22px;
+    color: var(--gold-light);
+    margin: 18px 0;
+    min-height: 30px;
+  }
+
+  .reset-btn{
+    display:block;
+    margin: 24px auto 0;
+    font-family:'Playfair Display', serif;
+    background: linear-gradient(180deg, #1a4a2d, #0d2c1b);
+    border: 2px solid var(--gold);
+    color: var(--gold-light);
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor:pointer;
+    font-size: 14px;
+  }
+
+  /* Confetti */
+  .confetti{
+    position: fixed;
+    top: -20px;
+    width: 8px; height: 14px;
+    opacity: 0.9;
+    pointer-events:none;
+    animation: fall linear forwards;
+    z-index: 999;
+  }
+  @keyframes fall{
+    to{ transform: translateY(110vh) rotate(540deg); opacity: 0.2; }
+  }
+</style>
+</head>
+<body>
+
+<h1 class="title">Das große Experten-Quartett</h1>
+<p class="subtitle">~ Bergbau, Recht &amp; Innovation in Aachen und Umgebung ~</p>
+
+<div class="topbar">
+  <button id="btn-overview" class="active" onclick="showView('overview')">Übersicht</button>
+  <button id="btn-duel" onclick="showView('duel')">Duell-Modus</button>
+</div>
+
+<!-- OVERVIEW -->
+<div id="view-overview" class="view active">
+  <div class="grid" id="overview-grid"></div>
+</div>
+
+<!-- DETAIL -->
+<div id="view-detail" class="view">
+  <span class="back-link" onclick="showView('overview')">&larr; zurück zur Übersicht</span>
+  <div class="detail-wrap" id="detail-wrap"></div>
+</div>
+
+<!-- DUEL -->
+<div id="view-duel" class="view">
+  <p class="duel-instructions" id="duel-instructions">Wähle zwei Karten aus, um ein Duell zu starten:</p>
+  <div class="grid" id="duel-pick-grid"></div>
+  <div class="duel-arena" id="duel-arena" style="display:none;"></div>
+  <div class="category-picker" id="category-picker" style="display:none;"></div>
+  <div class="result-banner" id="result-banner"></div>
+  <button class="reset-btn" id="duel-reset" style="display:none;" onclick="resetDuel()">Neues Duell</button>
+</div>
+
+<script>
+const CATEGORIES = [
+  { key: 'innovation', label: 'Innovation' },
+  { key: 'ki', label: 'KI-Kompetenz' },
+  { key: 'netzwerk', label: 'Netzwerk' },
+  { key: 'nrw', label: 'NRW-Expertise' }
+];
+
+const PEOPLE = [
+  {
+    id: 1,
+    name: 'Timm Rotter',
+    role: 'Gründer &amp; Geschäftsführer, disruptive',
+    org: 'disruptive (München)',
+    source: 'LinkedIn-Profil, disruptive-muenchen.de',
+    stats: { innovation: 10, ki: 10, netzwerk: 8, nrw: 5 }
+  },
+  {
+    id: 2,
+    name: 'Prof. Dr. Walter Frenz',
+    role: 'Universitätsprofessor, Lehr- und Forschungsgebiet Berg-, Umwelt- und Europarecht',
+    org: 'RWTH Aachen University',
+    source: 'rwth-aachen.de / bur.rwth-aachen.de Mitarbeiterprofil',
+    stats: { innovation: 6, ki: 5, netzwerk: 9, nrw: 10 }
+  },
+  {
+    id: 3,
+    name: 'Univ.-Prof. Dr. Axel Preuße',
+    role: 'Institutsleiter, Institut für Markscheidewesen, Bergschadenkunde und Geophysik im Bergbau',
+    org: 'RWTH Aachen University',
+    source: 'ifm.rwth-aachen.de Mitarbeiterprofil',
+    stats: { innovation: 8, ki: 6, netzwerk: 8, nrw: 10 }
+  },
+  {
+    id: 4,
+    name: 'Prof. Dr. Hans-Jürgen Müggenborg',
+    role: 'Rechtsanwalt &amp; Honorarprofessor, Umwelt- und Technikrecht',
+    org: 'Kanzlei Prof. Müggenborg, Aachen / RWTH Aachen',
+    source: 'rechtsanwalt-mueggenborg.de, gruenderregion.de',
+    stats: { innovation: 6, ki: 5, netzwerk: 9, nrw: 9 }
+  },
+  {
+    id: 5,
+    name: 'Andreas Tschauder',
+    role: 'Amtsleiter, Bergassessor',
+    org: 'Landesamt für Geologie und Bergbau Rheinland-Pfalz',
+    source: 'mwvlw.rlp.de Pressemitteilung, LinkedIn-Profil',
+    stats: { innovation: 7, ki: 5, netzwerk: 7, nrw: 5 }
+  },
+  {
+    id: 6,
+    name: 'Dr. Felix Lehnen',
+    role: 'Director, Radwaste Disposal, Mining and Environmental Management',
+    org: 'Brenk Systemplanung GmbH, Aachen',
+    source: 'LinkedIn-Profil, brenk.com',
+    stats: { innovation: 7, ki: 6, netzwerk: 7, nrw: 9 }
+  },
+  {
+    id: 7,
+    name: 'Dr. Malte Gurgel',
+    role: 'Stellv. Geschäftsführer der Fakultät für Georessourcen und Materialtechnik',
+    org: 'RWTH Aachen University',
+    source: 'ifm.rwth-aachen.de, mjm-gurgel.de, LinkedIn-Profil',
+    stats: { innovation: 8, ki: 6, netzwerk: 6, nrw: 9 }
+  },
+  {
+    id: 8,
+    name: 'Stephan Thiele',
+    role: 'Abteilungsleiter Umwelt (Immissionsschutz: Energie, Chemie, Abfall)',
+    org: 'Regierungspräsidium Darmstadt',
+    source: 'rp-darmstadt.hessen.de Pressemitteilung, LinkedIn-Profil',
+    stats: { innovation: 5, ki: 5, netzwerk: 7, nrw: 5 }
+  }
+];
+
+function initials(name){
+  return name
+    .replace(/^(Prof\.|Dr\.|Univ\.-Prof\.)\s*/g, '')
+    .split(' ')
+    .filter(p => p.length > 0 && p[0] === p[0].toUpperCase())
+    .map(p => p[0])
+    .slice(0,2)
+    .join('');
+}
+
+function statRow(p, key, label){
+  return `<div class="stat-row" data-cat="${key}" data-pid="${p.id}">
+    <span class="label">${label}</span>
+    <span class="value">${p.stats[key]}</span>
+  </div>`;
+}
+
+function cardHTML(p, opts){
+  opts = opts || {};
+  const cls = ['card'];
+  if (opts.selected) cls.push('selected');
+  if (opts.winner) cls.push('winner');
+  const clickAttr = opts.onClickFn ? `onclick="${opts.onClickFn}(${p.id})"` : '';
+  return `
+  <div class="${cls.join(' ')}" ${clickAttr} data-pid="${p.id}">
+    <div class="card-corner">Q</div>
+    <div class="avatar">${initials(p.name)}</div>
+    <div class="name">${p.name}</div>
+    <div class="role">${p.role}<br><span style="color:var(--gold-light)">${p.org}</span></div>
+    <div class="stats">
+      ${CATEGORIES.map(c => statRow(p, c.key, c.label)).join('')}
+    </div>
+  </div>`;
+}
+
+// ---------- Overview ----------
+function renderOverview(){
+  const grid = document.getElementById('overview-grid');
+  grid.innerHTML = PEOPLE.map(p => cardHTML(p, { onClickFn: 'openDetail' })).join('');
+}
+
+function openDetail(id){
+  const p = PEOPLE.find(x => x.id === id);
+  document.getElementById('detail-wrap').innerHTML = `<div class="detail-card">${cardHTML(p)}</div>`;
+  showView('detail');
+}
+
+// ---------- View switching ----------
+function showView(name){
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + name).classList.add('active');
+  document.getElementById('btn-overview').classList.toggle('active', name === 'overview');
+  document.getElementById('btn-duel').classList.toggle('active', name === 'duel');
+  if (name === 'duel') renderDuelPickGrid();
+}
+
+// ---------- Duel mode ----------
+let duelSelection = [];
+let duelLocked = false;
+
+function renderDuelPickGrid(){
+  if (duelLocked) return;
+  const grid = document.getElementById('duel-pick-grid');
+  grid.style.display = '';
+  grid.innerHTML = PEOPLE.map(p => cardHTML(p, {
+    onClickFn: 'togglePick',
+    selected: duelSelection.includes(p.id)
+  })).join('');
+  document.getElementById('duel-arena').style.display = 'none';
+  document.getElementById('category-picker').style.display = 'none';
+}
+
+function togglePick(id){
+  if (duelSelection.includes(id)){
+    duelSelection = duelSelection.filter(x => x !== id);
+  } else if (duelSelection.length < 2){
+    duelSelection.push(id);
+  }
+  renderDuelPickGrid();
+  if (duelSelection.length === 2){
+    startDuelArena();
+  }
+}
+
+function startDuelArena(){
+  duelLocked = true;
+  document.getElementById('duel-pick-grid').style.display = 'none';
+  document.getElementById('duel-instructions').textContent = 'Wähle eine Kategorie, um das Duell zu entscheiden:';
+  const [a, b] = duelSelection.map(id => PEOPLE.find(p => p.id === id));
+  const arena = document.getElementById('duel-arena');
+  arena.style.display = 'flex';
+  arena.innerHTML = `
+    <div class="duel-card" id="duel-card-a">${cardHTML(a)}</div>
+    <div class="duel-vs">VS</div>
+    <div class="duel-card" id="duel-card-b">${cardHTML(b)}</div>
+  `;
+  const picker = document.getElementById('category-picker');
+  picker.style.display = 'flex';
+  picker.innerHTML = CATEGORIES.map(c =>
+    `<button onclick="resolveDuel('${c.key}', '${c.label}')">${c.label}</button>`
+  ).join('');
+  document.getElementById('result-banner').textContent = '';
+  document.getElementById('duel-reset').style.display = 'none';
+}
+
+function resolveDuel(catKey, catLabel){
+  const [a, b] = duelSelection.map(id => PEOPLE.find(p => p.id === id));
+  const va = a.stats[catKey], vb = b.stats[catKey];
+  let winner = null, tie = false;
+  if (va > vb) winner = a;
+  else if (vb > va) winner = b;
+  else tie = true;
+
+  document.querySelectorAll('#category-picker button').forEach(btn => btn.disabled = true);
+
+  document.getElementById('duel-card-a').querySelector(`.stat-row[data-cat="${catKey}"]`).classList.add('duel-winner');
+  document.getElementById('duel-card-b').querySelector(`.stat-row[data-cat="${catKey}"]`).classList.add('duel-winner');
+
+  const banner = document.getElementById('result-banner');
+  if (tie){
+    banner.innerHTML = `Unentschieden bei <em>${catLabel}</em> (${va} : ${vb})`;
+  } else {
+    banner.innerHTML = `🏆 <strong>${winner.name}</strong> gewinnt die Kategorie <em>${catLabel}</em> (${va} : ${vb})!`;
+    const winnerCardEl = document.getElementById(winner.id === a.id ? 'duel-card-a' : 'duel-card-b').querySelector('.card');
+    winnerCardEl.classList.add('winner');
+    launchConfetti();
+  }
+  document.getElementById('duel-reset').style.display = 'block';
+}
+
+function resetDuel(){
+  duelSelection = [];
+  duelLocked = false;
+  document.getElementById('duel-instructions').textContent = 'Wähle zwei Karten aus, um ein Duell zu starten:';
+  document.getElementById('result-banner').textContent = '';
+  renderDuelPickGrid();
+}
+
+function launchConfetti(){
+  const colors = ['#c9a44c', '#e9d28a', '#f3ead9', '#1a4a2d', '#ffffff'];
+  for (let i = 0; i < 60; i++){
+    const el = document.createElement('div');
+    el.className = 'confetti';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.animationDuration = (2 + Math.random() * 2) + 's';
+    el.style.animationDelay = (Math.random() * 0.4) + 's';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4500);
+  }
+}
+
+renderOverview();
+</script>
+
+</body>
+</html>
